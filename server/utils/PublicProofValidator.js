@@ -47,7 +47,7 @@ function PublicProofValidator(tagProofPublicJson, metaData) {
     let hashData;
     try {
       const hashDataPath = path.join(__dirname, '../data/hashData.json');
-      hashData = JSON.parse(fs.readFileSync(hashDataPath, 'utf8'));
+      hashData = JSON.parse(fs.readFileSync(hashDataPath, 'utf8')).digest;
     } catch (error) {
       result.errors.push(`Could not load hashData file: ${error.message}`);
       result.message = 'User hasn\'t uploaded dataFile';

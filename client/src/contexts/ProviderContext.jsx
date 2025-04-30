@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import alphaHasher from '../utils/alphaHasher';
 import { browserPoseidonHasher } from '../utils/BrowserDataFileHasher';
 import tagGenerator from '../utils/tagGenerator';
 import Merger from '../utils/merger';
 import generateWitness from '../utils/generateWitness';
+import generateResponse from '../utils/ResponseGen.js';
 
 // Import the snarkjs library for proof generation
 import * as snarkjs from 'snarkjs';
@@ -26,6 +27,8 @@ export const ProviderContextProvider = ({ children }) => {
   const [alphaFile, setAlphaFile] = useState(null);
   const [tagProofGenWasmFile, setTagProofGenWasmFile] = useState(null);
   const [zkeyFile, setZkeyFile] = useState(null);
+  const [respProofGenWasmFile, setRespProofGenWasmFile] = useState(null);
+  const [respZkeyFile, setRespZkeyFile] = useState(null);
   
   // Processed data states
   const [certificateJson, setCertificateJson] = useState(null);
@@ -38,33 +41,63 @@ export const ProviderContextProvider = ({ children }) => {
   const [witnessBuffer, setWitnessBuffer] = useState(null);
   const [tagProofJson, setTagProofJson] = useState(null);
   const [tagProofPublicJson, setTagProofPublicJson] = useState(null);
-  
+
+  // Response states
+  const [responseJson, setResponseJson] = useState(null);
+  const [respProofGenInput, setRespProofGenInput] = useState(null);
+  const [respWitnessBuffer, setRespWitnessBuffer] = useState(null);
+  const [respProofJson, setRespProofJson] = useState(null);
+  const [respProofPublicJson, setRespProofPublicJson] = useState(null);
+
   // Processing status
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
   
   // Reset functions
-  const resetData = useCallback(() => {
-    setDataFile(null);
-    setDataJson(null);
-    setDataHash(null);
-    setMetaData(null);
-    setTagProofGenInput(null);
-    setWitnessBuffer(null);
-    setTagProofJson(null);
-    setTagProofPublicJson(null);
+  //const resetData = useCallback(() => {
+  //  setDataFile(null);
+  //  setDataJson(null);
+  //  setDataHash(null);
+  //  setMetaData(null);
+  //  setTagProofGenInput(null);
+  //  setWitnessBuffer(null);
+  //  setTagProofJson(null);
+  //  setTagProofPublicJson(null);
+  //}, []);
+  //
+  //const resetAll = useCallback(() => {
+  //  setCertificateFile(null);
+  //  setCertificateJson(null);
+  //  resetData();
+  //  setAlphaFile(null);
+  //  setAlphaJson(null);
+  //  setAlphaHash(null);
+  //  setTagProofGenWasmFile(null);
+  //  setZkeyFile(null);
+  //}, [resetData]);
+
+  // Add resetChallenge function to ProviderContextProvider
+  const resetChallenge = useCallback(() => {
+    setResponseJson(null);
+    setRespProofGenInput(null);
+    setRespProofGenWasmFile(null);
+    setRespWitnessBuffer(null);
+    setRespZkeyFile(null);
+    setRespProofJson(null);
+    setRespProofPublicJson(null);
+    setErrors((prev) => ({
+      ...prev,
+      challenge: null,
+      respProofGenWasm: null,
+      respWitness: null,
+      respZkey: null,
+      respProof: null
+    }));
   }, []);
-  
-  const resetAll = useCallback(() => {
-    setCertificateFile(null);
-    setCertificateJson(null);
-    resetData();
-    setAlphaFile(null);
-    setAlphaJson(null);
-    setAlphaHash(null);
-    setTagProofGenWasmFile(null);
-    setZkeyFile(null);
-  }, [resetData]);
+
+  useEffect(() => {
+  console.log("MetaData updated:", metaData);
+}, [metaData]);
   
   // Process functions
   const processCertificate = useCallback(async (file) => {
@@ -76,7 +109,7 @@ export const ProviderContextProvider = ({ children }) => {
       const parsedJson = JSON.parse(fileContent);
       setCertificateFile(file);
       setCertificateJson(parsedJson);
-      resetData(); // Reset dependent data
+      //resetData(); // Reset dependent data
       return true;
     } catch (error) {
       console.error('Error processing certificate:', error);
@@ -85,7 +118,7 @@ export const ProviderContextProvider = ({ children }) => {
     } finally {
       setIsProcessing(false);
     }
-  }, [resetData]);
+  }, []);
   
   const processData = useCallback(async (file) => {
     if (!certificateFile) {
@@ -110,7 +143,7 @@ export const ProviderContextProvider = ({ children }) => {
       
       // If alpha is already processed, generate metadata
       if (alphaJson) {
-        const generatedMetaData = tagGenerator(alphaJson, parsedJson);
+        const generatedMetaData = await tagGenerator(alphaJson, parsedJson);
         setMetaData(generatedMetaData);
         
         // If all data is available, generate tag proof input
@@ -279,31 +312,13 @@ export const ProviderContextProvider = ({ children }) => {
     try {
       // Read the zkey file as an ArrayBuffer
       const zkeyBuffer = await fileToUse.arrayBuffer();
-      
-      // Generate proof using snarkjs
-      // const { proof, publicSignals } = await snarkjs.groth16.prove(
-      //   new Uint8Array(zkeyBuffer),
-      //   witnessBuffer
-      // );
-      
-      // // Format the proof and public signals
-      // const formattedProof = {
-      //   pi_a: proof.pi_a,
-      //   pi_b: proof.pi_b,
-      //   pi_c: proof.pi_c,
-      //   protocol: "groth16"
-
-      // };
-
-      // setTagProofJson(formattedProof);
-      // setTagProofPublicJson(publicSignals);
 
 
       // const result = generateProofUsingCliApi(zkeyBuffer, witnessBuffer);
       const result = await generateProof(zkeyBuffer, witnessBuffer);
 
-      setTagProofJson(result.tagProofJson);
-      setTagProofPublicJson(result.tagProofPublicJson);
+      setTagProofJson(result.ProofJson);
+      setTagProofPublicJson(result.ProofPublicJson);
       
       
       return true;
@@ -315,6 +330,144 @@ export const ProviderContextProvider = ({ children }) => {
       setIsProcessing(false);
     }
   }, [witnessBuffer, zkeyFile]);
+
+  const processChallenge = useCallback((md, seed) => {
+    setIsProcessing(true);
+    setErrors((prev) => ({ ...prev, challenge: null }));
+    
+    try {
+      // Import and call generateResponse function
+       console.log();
+      const response = generateResponse(dataJson, md,seed);
+      
+      // Store the response
+      setResponseJson(response);
+      
+      // If alpha data is already available, generate response proof input
+      if (alphaJson && alphaHash) {
+        const respProofInput = Merger(response, alphaJson, alphaHash);
+        setRespProofGenInput(respProofInput);
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Error processing challenge:', error);
+      setErrors((prev) => ({ ...prev, challenge: error.message }));
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [alphaJson, alphaHash]);
+
+  const processRespProofGenWasm = useCallback(async (file) => {
+    setIsProcessing(true);
+    setErrors((prev) => ({ ...prev, respProofGenWasm: null }));
+    
+    try {
+      setRespProofGenWasmFile(file);
+      
+      // If response proof gen input is already available, generate witness
+      if (respProofGenInput) {
+        await processRespWitnessGeneration(file);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error processing RespProofGen WASM file:', error);
+      setErrors((prev) => ({ ...prev, respProofGenWasm: error.message }));
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [respProofGenInput]);
+
+  const processRespWitnessGeneration = useCallback(async (wasmFile = null) => {
+    const fileToUse = wasmFile || respProofGenWasmFile;
+    
+    if (!fileToUse || !respProofGenInput) {
+      setErrors((prev) => ({ 
+        ...prev, 
+        respWitness: 'Both RespProofGen WASM file and response input data are required'
+      }));
+      return false;
+    }
+    
+    setIsProcessing(true);
+    setErrors((prev) => ({ ...prev, respWitness: null }));
+    
+    try {
+      // Read the WASM file as an ArrayBuffer
+      const wasmBuffer = await fileToUse.arrayBuffer();
+      
+      // Generate witness using the provided function
+      const wtnsBuffer = await generateWitness(wasmBuffer, respProofGenInput);
+      setRespWitnessBuffer(wtnsBuffer);
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating response witness:', error);
+      setErrors((prev) => ({ ...prev, respWitness: error.message }));
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [respProofGenInput, respProofGenWasmFile]);
+
+  const processRespZkeyFile = useCallback(async (file) => {
+    setIsProcessing(true);
+    setErrors((prev) => ({ ...prev, respZkey: null }));
+    
+    try {
+      setRespZkeyFile(file);
+      
+      // If response witness buffer is already available, generate proof
+      if (respWitnessBuffer) {
+        await processRespProofGeneration(file);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error processing resp zkey file:', error);
+      setErrors((prev) => ({ ...prev, respZkey: error.message }));
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [respWitnessBuffer]);
+
+  const processRespProofGeneration = useCallback(async (zkeyFileToUse = null) => {
+    const fileToUse = zkeyFileToUse || respZkeyFile;
+    
+    if (!fileToUse || !respWitnessBuffer) {
+      setErrors((prev) => ({ 
+        ...prev, 
+        respProof: 'Both Circuit2.zkey file and response witness buffer are required'
+      }));
+      return false;
+    }
+    
+    setIsProcessing(true);
+    setErrors((prev) => ({ ...prev, respProof: null }));
+    
+    try {
+      // Read the zkey file as an ArrayBuffer
+      const zkeyBuffer = await fileToUse.arrayBuffer();
+      
+      
+      const result = await generateProof(zkeyBuffer, respWitnessBuffer);
+      
+      setRespProofJson(result.ProofJson);
+      setRespProofPublicJson(result.ProofPublicJson);
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating response proof:', error);
+      setErrors((prev) => ({ ...prev, respProof: error.message }));
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [respWitnessBuffer, respZkeyFile]);
   
   // Check if all required data is available for submission
   const isReadyForSubmission = certificateJson && dataJson && dataHash && 
@@ -328,8 +481,10 @@ export const ProviderContextProvider = ({ children }) => {
     alphaFile,
     tagProofGenWasmFile,
     zkeyFile,
+    respProofGenWasmFile,
+    respZkeyFile,
     
-    // Processed data
+    // Processed stuff
     certificateJson,
     dataJson,
     dataHash,
@@ -340,7 +495,12 @@ export const ProviderContextProvider = ({ children }) => {
     witnessBuffer,
     tagProofJson,
     tagProofPublicJson,
-    
+    responseJson,
+    respProofGenInput,
+    respWitnessBuffer,
+    respProofJson,
+    respProofPublicJson,
+      
     // Status
     isProcessing,
     errors,
@@ -354,8 +514,14 @@ export const ProviderContextProvider = ({ children }) => {
     processZkeyFile,
     processWitnessGeneration,
     processProofGeneration,
-    resetData,
-    resetAll
+    processChallenge,
+    processRespProofGenWasm,
+    processRespWitnessGeneration,
+    processRespZkeyFile,
+    processRespProofGeneration,
+    //resetData,
+    //resetAll,
+    resetChallenge
   };
   
   return (

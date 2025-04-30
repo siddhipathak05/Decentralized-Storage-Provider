@@ -8,10 +8,9 @@ const snarkjs = require('snarkjs');
  * @param {Object} tagProofPublicJson - The public inputs JSON object
  * @returns {Promise<boolean>} - Whether the proof is valid
  */
-async function verifyProof(tagProofJson, tagProofPublicJson) {
+async function verifyProof(verificationKeyPath ,tagProofJson, tagProofPublicJson) {
   try {
     // Load verification key from file
-    const verificationKeyPath = path.join(__dirname, './verification_key.json');
     const verificationKey = JSON.parse(fs.readFileSync(verificationKeyPath, 'utf8'));
 
     // This performs the same operation as "snarkjs groth16 verify"

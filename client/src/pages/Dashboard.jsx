@@ -1,5 +1,5 @@
 import useAuth from "../hooks/useAuth.js"
-import ProviderDashboard from "../components/ProviderDashboard";
+import ProviderDashboard from "../components/ProviderDashboard.jsx";
 import UserDashboard from "../components/UserDashboard.jsx";
 
 const Dashboard = () => {
