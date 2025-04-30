@@ -19,7 +19,7 @@ export async function generateProof(zkeyBuffer, wtnsBuffer) {
     );
     
     // Format outputs similar to what "snarkjs groth16 prove" would generate
-    const tagProofJson = {
+    const ProofJson = {
       pi_a: proof.pi_a,
       pi_b: proof.pi_b,
       pi_c: proof.pi_c,
@@ -27,11 +27,11 @@ export async function generateProof(zkeyBuffer, wtnsBuffer) {
       "curve": "bn128"
     };
     
-    const tagProofPublicJson = publicSignals;
+    const ProofPublicJson = publicSignals;
     
     return {
-      tagProofJson,
-      tagProofPublicJson
+      ProofJson,
+      ProofPublicJson
     };
   } catch (error) {
     console.error("Error generating proof:", error);
@@ -56,7 +56,7 @@ export async function generateProofUsingCliApi(zkeyBuffer, wtnsBuffer) {
     );
     
     // Format as standard output files
-    const tagProofJson = {
+    const ProofJson = {
       pi_a: proof.pi_a,
       pi_b: proof.pi_b,
       pi_c: proof.pi_c,
@@ -64,11 +64,11 @@ export async function generateProofUsingCliApi(zkeyBuffer, wtnsBuffer) {
       "curve": "bn128"
     };
     
-    const tagProofPublicJson = publicSignals;
+    const ProofPublicJson = publicSignals;
     
     return {
-      tagProofJson,
-      tagProofPublicJson
+      ProofJson,
+      ProofPublicJson
     };
   } catch (error) {
     console.error("Error generating proof with CLI API:", error);

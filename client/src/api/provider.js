@@ -10,8 +10,21 @@ export const uploadProviderData = async (dataHash, alphaHash, metaData, tagProof
   });
 };
 
+// Add this function in api/provider.js
+export const uploadProviderChallenge = async (metaData, respProofJson, respProofPublicJson) => {
+  return axiosInstance.post('/provider/upload-challenge', {
+    metaData,
+    respProofJson,
+    respProofPublicJson
+  });
+};
+
 export const uploadCertificate = async (certificateJson) => {
   return axiosInstance.post('/provider/upload-certificate', {
     certificate: certificateJson
   });
+};
+
+export const get_seed = async () => {
+  return axiosInstance.get('/provider/get_seed');
 };
