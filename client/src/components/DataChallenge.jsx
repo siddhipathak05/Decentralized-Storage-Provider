@@ -68,8 +68,6 @@ export default function DataChallenge({ onPrev }) {
     } else {
       toast.error(responsed.data.message);
     }
-      // Stop the interval after successful submission
-      stopChallengeInterval();
     } catch (error) {
       console.error(error);
       toast.error('Failed to submit challenge response');
@@ -82,8 +80,6 @@ export default function DataChallenge({ onPrev }) {
     setIsProcessing(true);
 
     try {
-      // Reset challenge state before starting a new challenge
-      resetChallenge();
       
       const response = await get_seed();
       setSeed(response.data.seed);

@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills'
+import {config} from 'dotenv';
+
+config();
 
 export default defineConfig({
   plugins: [
@@ -29,9 +32,19 @@ export default defineConfig({
     },
   },
 
+  //server: {
+  //  proxy: {
+  //    '/api': 'http://192.168.12.218:8000',
+  //  },
+  //},
   server: {
-    proxy: {
-      '/api': 'http://localhost:8000',
-    },
-  },
+  host: '0.0.0.0',
+  port: 8000,
+  proxy: {
+    '/api': {
+      target: process.env.SERVER_IP,
+      changeOrigin: true,
+    }
+  }
+}
 })
