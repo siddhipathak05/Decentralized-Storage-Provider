@@ -8,8 +8,10 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 const corsOptions = {
-    origin: 'http://localhost:5173',   // Frontend URL
-    credentials: true                  // Allow cookies/token headers
+    origin: (origin, callback) => {
+        callback(null, origin); // Reflect the origin
+    },
+    credentials: true
 };
 
 app.use(cors(corsOptions)); 
@@ -19,6 +21,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/provider', providerRoutes);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });

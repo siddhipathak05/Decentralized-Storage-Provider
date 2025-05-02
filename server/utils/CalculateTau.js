@@ -20,12 +20,16 @@ const No_Of_Rows = 50;        // Total no. of rows in the metadata
 const CHALLENGE_SIZE = 5;     // Total no. of challenged blocks
 const Coeff_Domain = 100;     // Max value of a sector coefficient
 
-async function calculateTau(metaDataJson) {
+async function calculateTau() {
     // --- Load Seeds File ---
     const seedsFile = path.join(__dirname, "../data/seeds.json");
     const seeds = JSON.parse(fs.readFileSync(seedsFile)).seed;
     const seed1 = seeds[0];
     const seed2 = seeds[1];
+
+    // --- Load metaData.json ----
+    const metaDataFile = path.join(__dirname, '../data/metaData.json');
+    const metaDataJson = JSON.parse(fs.readFileSync(metaDataFile));
 
     // --- Step 1: Generate indices and coefficients ---
     const index = generateRandomIntArray(seed1, CHALLENGE_SIZE, No_Of_Rows);

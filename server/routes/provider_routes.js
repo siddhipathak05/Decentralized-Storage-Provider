@@ -11,7 +11,7 @@ const {validateHashAlpha} = require('../utils/validateHashAlpha.js');
 const {calculateTau} = require('../utils/CalculateTau.js');
 const dataDir = path.join(__dirname, '..', 'data');
 const hashAlphaFilePath = path.join(dataDir, 'hashAlpha.json');
-
+const {saveJsonData} = require('../utils/saveAsFile.js')
 router.post('/upload-certificate', async (req, res) => {
 
     try {
@@ -57,9 +57,9 @@ router.post('/upload-data', async (req, res) => {
           error: 'Missing required fields in request body' 
         });
       }
-      
-      // Step 1: Validate that data matches across all inputs
-      const isDataValid = validateData(tagProofPublicJson, metaData, dataHash, alphaHash);
+        saveJsonData(metaData, '../data/', 'metaData.json');
+          // Step 1: Validate that data matches across all inputs
+        const isDataValid = validateData(tagProofPublicJson, metaData, dataHash, alphaHash);
       
       const validationResult = PublicProofValidator(tagProofPublicJson, metaData);
       if (!validationResult.success || !isDataValid) {
@@ -110,7 +110,7 @@ router.post('/upload-challenge', async (req, res) => {
       });
     }
     
-    await calculateTau(metaData);
+    await calculateTau();
     
     // Verify that the Tau values match
     const isTauValid = validateTau(respProofPublicJson);
